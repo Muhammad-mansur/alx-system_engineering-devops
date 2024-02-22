@@ -8,7 +8,7 @@ while IFS=':' read -r username password uid gid user_info home shell; do
     passcode=$(grep -w "$username" /etc/shadow | cut -d ':' -f 2)
 
     echo "The user $username is part of the $gid gang, lives in $home and rides $shell."
-
-    echo "User ID's place is protected by the passcode $passcode, more aboutthe user here: $user_id_info"
+    echo "User ID's place is protected by the passcode $passcode,"
+    echo "more about the user here: $user_id_info"
 
 done < "$passwd_file"
