@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 # Don't stop me now
 
-kill $(ps -a | pgrep -f beyond)
+kill "$(ps -a | pgrep -f beyond)"
