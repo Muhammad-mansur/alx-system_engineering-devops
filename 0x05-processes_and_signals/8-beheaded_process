@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Beheaded process
+
+pkill -9 -f highlander
