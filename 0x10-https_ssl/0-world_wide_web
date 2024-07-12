@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 # function to display information about a given subdomain
 prints () {
   full_domain="$2.$1"
