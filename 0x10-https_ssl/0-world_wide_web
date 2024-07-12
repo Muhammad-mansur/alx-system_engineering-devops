@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# function to display information about a given subdomain
+prints () {
+  full_domain="$2.$1"
+    record=$(dig +short "$full_domain")
+
+    if [ -z "$record" ]; then
+        echo "The subdomain $2 does not have an A record or is not reachable"
+    else
+        echo "The subdomain $2 is an A record and points to $record"
+    fi
+}
+
+# check the number of arguments
+if [ $# -eq 1 ]; then
+  # print information for default subdomains
+  prints "$1" "www"
+  prints "$1" "lb-01"
+  prints "$1" "web-01"
+  prints "$1" "web-02"
+elif [ $# -eq 2 ]; then
+  # print information for the specified subdomain
+  prints "$1" "$2"
+else
+  # print usage if incorrect numer of arguments
+  echo "Usage: $0 DOMAIN [SUBDOMAIN]"
+fi
