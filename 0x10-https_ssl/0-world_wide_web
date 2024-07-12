@@ -20,7 +20,7 @@ if [ $# -eq 1 ]; then
   prints "$1" "web-02"
 elif [ $# -eq 2 ]; then
   # print information for the specified subdomain
-  prints "$1" "$2"
+  prints "$2.$1" "$2"
 else
   # print usage if incorrect numer of arguments
   echo "Usage: $0 DOMAIN [SUBDOMAIN]"
