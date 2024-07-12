@@ -3,15 +3,25 @@
 # shellcheck disable=SC2154
 
 # Update package list and install Nginx
-sudo apt-get update
+sudo apt-get update -y
 sudo apt-get install -y nginx
 
 # Get the hostname of the server
 HOSTNAME=$(hostname)
 
-# Configure Nginx to add the custom header
+# Backup the original Nginx default site configuration
 CONFIG_FILE="/etc/nginx/sites-available/default"
-sudo sed -i '/^    server_name _;/a \\n    add_header X-Served-By '"$HOSTNAME"';' "$CONFIG_FILE"
+sudo cp "$CONFIG_FILE" "$CONFIG_FILE.bak"
+
+# Add the custom header to the configuration file
+sudo sed -i '/location \/ {/a \\tadd_header X-Served-By '"$HOSTNAME"';' "$CONFIG_FILE"
 
 # Restart Nginx to apply the changes
 sudo systemctl restart nginx
+
+# Check if the Nginx service is running
+if systemctl is-active --quiet nginx; then
+  echo "Nginx is running with the custom header configured."
+else
+  echo "Failed to restart Nginx. Please check the configuration."
+fi
