@@ -1,29 +1,58 @@
 #!/usr/bin/env bash
-# Ignore SC2154 for shellcheck
-# shellcheck disable=SC2154
+# Update and install Nginx if not already installed
+function install() {
+    if ! command -v "$1" &> /dev/null; then
+        echo "Installing $1..."
+        sudo apt-get update -y -qq
+        sudo apt-get install -y "$1" -qq
+    else
+        echo "$1 is already installed."
+    fi
+}
 
-# Update package list and install Nginx
-sudo apt-get update -y
-sudo apt-get install -y nginx
+install nginx
 
-# Get the hostname of the server
-HOSTNAME=$(hostname)
+# Allow Nginx through the firewall
+sudo ufw allow 'Nginx HTTP'
 
-# Configure Nginx to add the custom header
+# Ensure the web directory exists and set permissions
+sudo mkdir -p /var/www/html
+sudo chown -R "$USER":"$USER" /var/www
+sudo chmod -R 755 /var/www
+
+# Create a basic HTML page
+echo "Holberton School for the win!" > /var/www/html/index.html
+
+# Backup the original Nginx configuration file
+sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.backup
+
+# Configure Nginx to include the custom header
 CONFIG_FILE="/etc/nginx/sites-available/default"
+sudo tee "$CONFIG_FILE" > /dev/null <<EOL
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
 
-# Create a backup of the original configuration
-sudo cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
 
-# Add the custom header to the configuration file
-sudo sed -i '/location \/ {/a \\tadd_header X-Served-By '"$HOSTNAME"';' "$CONFIG_FILE"
+    server_name _;
 
-# Restart Nginx to apply the changes
+    add_header X-Served-By \$hostname;
+
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+EOL
+
+# Restart Nginx to apply the new configuration
 sudo systemctl restart nginx
 
-# Verify Nginx is running and the configuration is applied
+# Verify the configuration
 if systemctl is-active --quiet nginx; then
-  echo "Nginx is running with the custom header configured."
+    echo "Nginx is running with the custom header configured."
 else
-  echo "Failed to restart Nginx. Please check the configuration."
+    echo "Failed to restart Nginx. Please check the configuration."
 fi
+
