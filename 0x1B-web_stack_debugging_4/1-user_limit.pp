@@ -1,5 +1,4 @@
 # Update file descriptor limits for the holberton user
-
 exec {'increase-soft-limit':
   provider => shell,
   command  => 'sed -i "s/holberton soft nofile [0-9]*/holberton soft nofile 50000/" /etc/security/limits.conf',
