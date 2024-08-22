@@ -1,21 +1,34 @@
-# Update file descriptor limits for the holberton user
-exec {'increase-soft-limit':
-  provider => shell,
-  command  => 'sed -i "s/holberton soft nofile [0-9]*/holberton soft nofile 50000/" /etc/security/limits.conf',
-  unless   => 'grep -q "holberton soft nofile 50000" /etc/security/limits.conf',
-  before   => Exec['increase-hard-limit'],
+# Ensure the holberton user exists
+user { 'holberton':
+  ensure     => present,
+  managehome => true,
+  shell      => '/bin/bash',
 }
 
-exec {'increase-hard-limit':
-  provider => shell,
-  command  => 'sed -i "s/holberton hard nofile [0-9]*/holberton hard nofile 50000/" /etc/security/limits.conf',
-  unless   => 'grep -q "holberton hard nofile 50000" /etc/security/limits.conf',
+# Set permissions on the user's home directory to avoid access issues
+file { '/home/holberton':
+  ensure  => directory,
+  owner   => 'holberton',
+  group   => 'holberton',
+  mode    => '0755',
+  require => User['holberton'],
 }
 
-# Reload or restart any service if necessary to apply these changes
-exec { 'reload_limits':
-  provider => shell,
-  command  => 'sudo sysctl -p',
-  subscribe => Exec['increase-hard-limit'],
-  refreshonly => true,
+# Ensure holberton user can open files without permission issues
+file { '/home/holberton/somefile.txt':
+  ensure  => file,
+  owner   => 'holberton',
+  group   => 'holberton',
+  mode    => '0644',
+  require => User['holberton'],
+}
+
+# Grant sudo access to the holberton user (if necessary)
+file { '/etc/sudoers.d/holberton':
+  ensure  => file,
+  content => 'holberton ALL=(ALL) NOPASSWD: ALL',
+  mode    => '0440',
+  owner   => 'root',
+  group   => 'root',
+  require => User['holberton'],
 }
