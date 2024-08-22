@@ -1,16 +1,15 @@
-# Increase the file descriptor limit for Nginx to handle more connections
+# Enhance Nginx's ability to manage higher traffic volumes
 
-# Modify the worker_rlimit_nofile directive in the Nginx configuration
-exec { 'increase_nginx_file_limit':
-  command => 'sed -i "s/worker_rlimit_nofile [0-9]*;/worker_rlimit_nofile 4096;/" /etc/nginx/nginx.conf',
+# Adjust the ULIMIT setting in the Nginx configuration file
+exec { 'update_nginx_ulimit':
+  command => 'sed -i "s/1024/4096/" /etc/nginx/nginx.conf',
   path    => '/usr/bin:/bin',
-  unless  => 'grep -q "worker_rlimit_nofile 4096;" /etc/nginx/nginx.conf',
+  onlyif  => 'grep -q "worker_rlimit_nofile 1024;" /etc/nginx/nginx.conf',
 }
 
-# Reload the Nginx service to apply the updated configuration
+# Reload Nginx to apply the new settings
 exec { 'reload_nginx_service':
   command => 'systemctl reload nginx',
   path    => '/usr/bin:/bin:/sbin',
-  subscribe => Exec['increase_nginx_file_limit'],
-  refreshonly => true,
+  require => Exec['update_nginx_ulimit'],
 }
